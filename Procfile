@@ -1,0 +1,1 @@
+web: gunicorn web:api --workers=1
