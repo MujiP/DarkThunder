@@ -5,15 +5,15 @@ from constants import *
 
 class Events(object):
     """
-    Events resource of our API, for posting and getting events.
+    Falcon resource for posting and getting events.
 
     Raises exceptions:
     falcon.HTTPNotFound (404 Not Found)
     falcon.HTTPBadRequest (400 Bad Request)
 
     Methods:
-    on_post(): 
-    on_get(): 
+    on_post(): Post an event to the server.
+    on_get(): Retrieve events from the server.
     """
 
     def __post_event(self, category: str, event: dict):
@@ -24,7 +24,7 @@ class Events(object):
         category -- Event category.
         event -- Dictionary mapping event fields to content.
         """
-        # Need a pipeline to group multiple commands in a transaction.
+        # Use a pipeline to group multiple commands in a transaction.
         pipeline = conn.pipeline()
         # Creates a hash representation of the event in Redis
         status = pipeline.hmset(event['id'], event)
@@ -84,10 +84,10 @@ class Events(object):
         # so just make sure there is a category.
         if category == '':
             raise falcon.HTTPNotFound()
-        # Read the request as a dict.
+        # Read the request's media as a dictionary.
         event_data = req.media
         # Ensure request contains all required fields.
-        # Doesn't currently prevent user from entering extra fields.
+        # (doesn't currently prevent user from entering extra fields).
         if (not self.__is_valid_event(event_data)):
             raise falcon.HTTPBadRequest()
         #Assign a unique id to this event
@@ -97,7 +97,8 @@ class Events(object):
 
     def __is_valid_event(self, event: dict):
         """Return True if event contains the required fields, false otherwise."""
-        return all(required_field in event.keys() for required_field in event_required_fields)
+        return all(required_field in event.keys() 
+            for required_field in event_required_fields)
 
     def __get_events(self, event_id: str):
         """Return event data as a dictionary."""
