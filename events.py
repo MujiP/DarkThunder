@@ -8,17 +8,24 @@ from constants import *
 
 class Events(object):
     """
-    methods:
+    Events resource of our API, for posting and getting events.
 
-    on_post(): Take in event data and send appropriate commands to Redis.
-    on_get(): Retrieve event data from Redis.
+    Raises exceptions:
+    falcon.HTTPNotFound (404 Not Found)
+    falcon.HTTPBadRequest (400 Bad Request)
+
+    Methods:
+    on_post(): 
+    on_get(): 
     """
 
     def __post_event(self, category: str, event: dict):
         """
         Create an event in Redis.
-        args:
-        event    Dictionary mapping event fields to content.
+
+        Arguments:
+        category -- Event category.
+        event -- Dictionary mapping event fields to content.
         """
         # TODO: Can efficiency be improved with Redis pipelining?
         # TODO: Should these operations be grouped in a Redis transaction?
@@ -35,9 +42,18 @@ class Events(object):
         category: str
         ):
         """
-        Send a response containing data for all events in JSON format.
+        Falcon responder for HTTP get method.
+        Send an HTTP response containing data for all events 
+        in the given category. Repsonse is in JSON format.
+
+        Arguments:
+        req -- Incoming HTTP request.
+        resp -- Outgoing HTTP response. 404 if no category given.
+        category -- Category from which to get events.
         """
-        if category == None: # We don't have a list of valid categories to check.
+        # We don't have a list of valid categories to check,
+        # so just make sure there is a category.
+        if category == '': 
             raise falcon.HTTPNotFound()
         # Get the IDs for all events in the category
         event_ids = conn.smembers('event-categories:' + category)
@@ -57,8 +73,20 @@ class Events(object):
         category: str
         ):
         """
-        Given a POST request containing event data, create the event in Redis.
+        Falcon responder for HTTP post method.
+        Given a request containing event data, create the event in Redis.
+
+        Arguments:
+        req --  Incoming HTTP request. Media attribute must be a JSON 
+                object containing all required event fields. 
+        resp -- Outgoing HTTP response. 404 if no category given,
+                400 if JSON object is missing required fields.
+        category -- Category to post the event to.
         """
+        # We don't have a list of valid categories to check,
+        # so just make sure there is a category.
+        if category == '':
+            raise falcon.HTTPNotFound()
         # Read the request as a dict.
         event_data = req.media
         # Ensure request contains all required fields.
