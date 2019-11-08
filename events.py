@@ -3,9 +3,6 @@ import json
 
 from constants import *
 
-# Each resource class goes in its own file
-# TODO: Proper docstrings, error handling
-
 class Events(object):
     """
     Events resource of our API, for posting and getting events.
@@ -27,13 +24,13 @@ class Events(object):
         category -- Event category.
         event -- Dictionary mapping event fields to content.
         """
-        # TODO: Can efficiency be improved with Redis pipelining?
-        # TODO: Should these operations be grouped in a Redis transaction?
-        # TODO: Error handling
+        # Need a pipeline to group multiple commands in a transaction.
+        pipeline = conn.pipeline()
         # Creates a hash representation of the event in Redis
-        status = conn.hmset(event['id'], event)
+        status = pipeline.hmset(event['id'], event)
         # Add this event's id to the set of all events in the category
-        conn.sadd('event-categories:'+ category, event['id'])
+        pipeline.sadd('event-categories:'+ category, event['id'])
+        pipeline.execute()
 
     def on_get(
         self,
