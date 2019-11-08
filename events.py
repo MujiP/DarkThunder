@@ -97,6 +97,8 @@ class Events(object):
 
     def __is_valid_event(self, event: dict):
         """Return True if event contains the required fields, false otherwise."""
+        if event == None:
+            return False
         return all(required_field in event.keys() 
             for required_field in event_required_fields)
 
