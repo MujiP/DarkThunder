@@ -7,7 +7,7 @@ url = urlparse(os.environ.get('REDISCLOUD_URL'))
 conn = redis.Redis(
     host=url.hostname, 
     port=url.port, 
-    password=url.password
+    password=url.password,
     decode_responses=True
 )
 
