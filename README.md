@@ -1,6 +1,6 @@
 # Bolusaur Python Backend
 
-This is the backend for our app. It is currently hosted on Heroku at https://darkthunder-1.herokuapp.com and uses Redis Cloud .
+This is the backend for our app. It is currently hosted on Heroku at https://darkthunder-1.herokuapp.com and uses Redis Cloud Free, which gives us 30MB of storage.
 
 To see all events in a category, send a GET request to https://darkthunder-1.herokuapp.com/events/{category}, where {category} is any string. You can also visit the page in your browser. I have posted an event in the food category, which you can see here: https://darkthunder-1.herokuapp.com/events/food.
 
