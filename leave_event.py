@@ -14,4 +14,5 @@ class LeaveEvent(object):
         person_id: str
     ):
         conn.srem(event_id + ':people', person_id)
+        conn.srem('person:' + person_id, event_id)
         resp.status = falcon.HTTP_200

@@ -14,4 +14,5 @@ class JoinEvent(object):
         person_id: str
     ):
         conn.sadd(event_id + ':people', person_id)
+        conn.sadd('person:' + person_id, event_id)
         resp.status = falcon.HTTP_200
