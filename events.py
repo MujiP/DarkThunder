@@ -29,7 +29,7 @@ class Events(object):
         if 'people' in event.keys():
             for person in event['people']:
                 pipeline.sadd(event['id'] + ':people', person)
-                # Add this event to each person's list of events
+                # Add this event to each person's set of events
                 pipeline.sadd('person:' + person, event['id'])
             event.pop('people', None)
         if 'tags' in event.keys():
