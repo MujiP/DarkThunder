@@ -6,11 +6,11 @@ from urllib.parse import urlparse
 # and to store a redis connection
 url = urlparse(os.environ.get('REDISCLOUD_URL'))
 conn = redis.Redis(
-    host=url.hostname, 
-    port=url.port, 
-    password=url.password,
+    #host=url.hostname, 
+    #port=url.port, 
+    #password=url.password,
     decode_responses=True
 )
 
-event_required_fields = ['name', 'location', 'start_time', 'end_time']
+event_required_fields = []
 event_optional_fields = ['description']
