@@ -12,5 +12,5 @@ conn = redis.Redis(
     decode_responses=True
 )
 
-event_required_fields = ['name', 'location', 'start_time', 'end_time']
+event_required_fields = []
 event_optional_fields = ['description']
