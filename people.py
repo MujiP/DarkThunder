@@ -6,8 +6,7 @@ from events import list_events
 from constants import *
 
 class People(object):
-
-
+    
     def on_get(
         self,
         req: falcon.Request,
