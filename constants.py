@@ -6,9 +6,9 @@ from urllib.parse import urlparse
 # and to store a redis connection
 url = urlparse(os.environ.get('REDISCLOUD_URL'))
 conn = redis.Redis(
-    #host=url.hostname, 
-    #port=url.port, 
-    #password=url.password,
+    host=url.hostname, 
+    port=url.port, 
+    password=url.password,
     decode_responses=True
 )
 
