@@ -25,6 +25,15 @@ class Events(object):
         """
         # Use a pipeline to group multiple commands in a transaction.
         pipeline = conn.pipeline()
+        # Create tables for list fields: people and tags
+        if 'people' in event.keys():
+            for person in event['people']:
+                pipeline.rpush(event['id'] + ':people', person)
+            event.pop('people', None)
+        if 'tags' in event.keys():
+            for tag in event['tags']:
+                pipeline.rpush(event['id'] + ':tags', tag)
+            event.pop('tags', None)
         # Creates a hash representation of the event in Redis
         status = pipeline.hmset(event['id'], event)
         # Add this event's id to the list of all events
@@ -52,6 +61,10 @@ class Events(object):
         for event_id in event_ids:
             event_data = self.__get_events(event_id)
             events[event_id] = event_data
+            # Look up this event's people in the event:{event_id}:people table
+            events[event_id]['people'] = conn.lrange(events[event_id]['id'] + ':people', 0, -1)
+            # Look up this event's tags in the event:{event_id}:tags table
+            events[event_id]['tags'] = conn.lrange(events[event_id]['id'] + ':tags', 0, -1)
         resp.status = falcon.HTTP_200
         resp.body = (json.dumps(events))
 
@@ -90,7 +103,8 @@ class Events(object):
 
     def __get_events(self, event_id: str):
         """Return event data as a dictionary."""
-        return conn.hgetall(event_id)
+        event_ids = conn.hgetall(event_id)
+        return event_ids
 
     def __generate_event_id(self):
         """Return a new unique event id as a string of the form event:number."""
