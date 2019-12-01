@@ -56,7 +56,7 @@ class Events(object):
         req -- Incoming HTTP request.
         resp -- Outgoing HTTP response. 404 if no category given.
         """
-        # Get the IDs for all events in the category
+        # Get the IDs for all events
         event_ids = conn.lrange('events', 0, -1)
         # Retrieve event data and package into a JSON document
         events = list_events(event_ids)
