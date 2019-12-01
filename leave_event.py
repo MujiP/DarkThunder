@@ -3,6 +3,7 @@
 import falcon
 import json
 from constants import *
+from events import get_event_data
 
 class LeaveEvent(object):
 
@@ -13,6 +14,10 @@ class LeaveEvent(object):
         event_id: str,
         person_id: str
     ):
-        conn.srem(event_id + ':people', person_id)
-        conn.srem('person:' + person_id, event_id)
-        resp.status = falcon.HTTP_200
+        event_data = get_event_data(event_id)
+        if event_data == {}:
+            resp.status = falcon.HTTP_404
+        else:
+            conn.srem(event_id + ':people', person_id)
+            conn.srem('person:' + person_id, event_id)
+            resp.status = falcon.HTTP_200
