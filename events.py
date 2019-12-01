@@ -25,10 +25,12 @@ class Events(object):
         """
         # Use a pipeline to group multiple commands in a transaction.
         pipeline = conn.pipeline()
-        # Create tables for list fields: people and tags
+        # Need to create separate tables for the two list fields since hashes can't contain lists.
         if 'people' in event.keys():
             for person in event['people']:
-                pipeline.rpush(event['id'] + ':people', person)
+                pipeline.sadd(event['id'] + ':people', 'person:' + person)
+                # Add this event to each person's list of events
+                pipeline.sadd('person:' + person, event['id'])
             event.pop('people', None)
         if 'tags' in event.keys():
             for tag in event['tags']:
@@ -57,14 +59,7 @@ class Events(object):
         # Get the IDs for all events in the category
         event_ids = conn.lrange('events', 0, -1)
         # Retrieve event data and package into a JSON document
-        events = {}
-        for event_id in event_ids:
-            event_data = self.__get_events(event_id)
-            events[event_id] = event_data
-            # Look up this event's people in the event:{event_id}:people table
-            events[event_id]['people'] = conn.lrange(events[event_id]['id'] + ':people', 0, -1)
-            # Look up this event's tags in the event:{event_id}:tags table
-            events[event_id]['tags'] = conn.lrange(events[event_id]['id'] + ':tags', 0, -1)
+        events = list_events(event_ids)
         resp.status = falcon.HTTP_200
         resp.body = (json.dumps(events))
 
@@ -101,12 +96,29 @@ class Events(object):
         return all(required_field in event.keys() 
             for required_field in event_required_fields)
 
-    def __get_events(self, event_id: str):
-        """Return event data as a dictionary."""
-        event_ids = conn.hgetall(event_id)
-        return event_ids
 
     def __generate_event_id(self):
         """Return a new unique event id as a string of the form event:number."""
         generated_id = conn.incr('event_id')
         return 'event:' + str(generated_id)
+
+def get_people(event_id: str):
+    '''Return a list of all people attending an event'''
+    return list(conn.smembers(event_id + ':people'))
+
+def get_event_data(event_id: str):
+    """Return event data as a dictionary."""
+    event_data = conn.hgetall(event_id)
+    return event_data
+
+def list_events(event_ids: list):
+    '''Return a dictionary containing data for all given events'''
+    events = {}
+    for event_id in event_ids:
+        event_data = get_event_data(event_id)
+        events[event_id] = event_data
+        # Look up this event's people in the event:{event_id}:people table
+        events[event_id]['people'] = get_people(event_id)
+        # Look up this event's tags in the event:{event_id}:tags table
+        events[event_id]['tags'] = conn.lrange(event_id + ':tags', 0, -1)
+    return events
