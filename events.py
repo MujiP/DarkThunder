@@ -105,7 +105,7 @@ class Events(object):
 
 def get_people(event_id: str):
     '''Return a list of all people attending an event'''
-    return list(conn.smembers(event_id + ':people'))
+    return sorted(conn.smembers(event_id + ':people'))
 
 def get_event_data(event_id: str):
     """Return event data as a dictionary."""
@@ -116,6 +116,9 @@ def list_events(event_ids: list):
     '''Return a list containing data for all given events, in order by date'''
     events = []
     i = 0
+    # Should really order by date after retrieving the specified events
+    # rather than going through all events in order to pick out the specified
+    # ones; it would work better at scale.
     for event_id in conn.zrange('date:', 0, -1):
         if event_id in event_ids:
             event_data = get_event_data(event_id)
