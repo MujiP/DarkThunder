@@ -38,7 +38,8 @@ class Events(object):
             event.pop('tags', None)
         # Creates a hash representation of the event in Redis
         status = pipeline.hmset(event['id'], event)
-        # Add this event's id to the list of all events
+        # Add this event's id to the sorted set of all events (sorted by date)
+        pipeline.zadd('date:', {event['id']: event['date']})
         pipeline.rpush('events', event['id'])
         pipeline.execute()
 
@@ -112,13 +113,16 @@ def get_event_data(event_id: str):
     return event_data
 
 def list_events(event_ids: list):
-    '''Return a dictionary containing data for all given events'''
-    events = {}
-    for event_id in event_ids:
-        event_data = get_event_data(event_id)
-        events[event_id] = event_data
-        # Look up this event's people in the event:{event_id}:people table
-        events[event_id]['people'] = get_people(event_id)
-        # Look up this event's tags in the event:{event_id}:tags table
-        events[event_id]['tags'] = conn.lrange(event_id + ':tags', 0, -1)
+    '''Return a list containing data for all given events, in order by date'''
+    events = []
+    i = 0
+    for event_id in conn.zrange('date:', 0, -1):
+        if event_id in event_ids:
+            event_data = get_event_data(event_id)
+            events.append(event_data)
+            # Look up this event's people in the event:{event_id}:people table
+            events[i]['people'] = get_people(event_id)
+            # Look up this event's tags in the event:{event_id}:tags table
+            events[i]['tags'] = conn.lrange(event_id + ':tags', 0, -1)
+            i = i + 1
     return events
